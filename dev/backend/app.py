@@ -5,6 +5,7 @@ from flask_migrate import Migrate
 import jwt
 import datetime
 from functools import wraps
+import random
 
 app = Flask(__name__)
 CORS(app)
@@ -20,6 +21,20 @@ class User(db.Model):
     username = db.Column(db.String(50), unique=True, nullable=False)
     password = db.Column(db.String(128))  # Storing password in plaintext
     role = db.Column(db.String(50), default='user')
+
+class Game(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    game_type = db.Column(db.String(20))  # multiplayer, single, vs_computer
+    status = db.Column(db.String(20))  # started, finished
+    guesses = db.relationship('Guess', backref='game', lazy=True)
+
+class Guess(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    game_id = db.Column(db.Integer, db.ForeignKey('game.id'), nullable=False)
+    guess = db.Column(db.String(4))  # The guessed number
+    cows = db.Column(db.Integer)  # Number of cows
+    bulls = db.Column(db.Integer)  # Number of bulls
 
 def token_required(f):
     @wraps(f)
@@ -81,7 +96,6 @@ def dashboard(current_user):
     else:
         return jsonify({'message': 'Unauthorized'}), 401
 
-
 @app.route('/user/delete/<username>', methods=['DELETE'])
 @token_required
 def delete_user(current_user, username):
@@ -110,6 +124,75 @@ def list_users(current_user):
         users_list.append(user_data)
 
     return jsonify({'users': users_list}), 200
+
+@app.route('/game/start', methods=['POST'])
+@token_required
+def start_game(current_user):
+    data = request.json
+    game_type = data.get('game_type')  # multiplayer, single, vs_computer
+    role = data.get('role')  # guesser or mastermind
+    if game_type != 'vs_computer' or role not in ['guesser', 'mastermind']:
+        return jsonify({'message': 'Invalid game type or role'}), 400
+    
+    new_game = Game(user_id=current_user.id, game_type=game_type, status='started', role=role)
+    db.session.add(new_game)
+    db.session.commit()
+
+    return jsonify({'message': 'Game started successfully', 'game_id': new_game.id}), 201
+
+@app.route('/game/stop/<int:game_id>', methods=['PUT'])
+@token_required
+def stop_game(current_user, game_id):
+    game = Game.query.get(game_id)
+    if not game:
+        return jsonify({'message': 'Game not found'}), 404
+    
+    if game.user_id != current_user.id:
+        return jsonify({'message': 'Unauthorized. This is not your game'}), 401
+    
+    game.status = 'finished'
+    db.session.commit()
+    
+    return jsonify({'message': 'Game stopped successfully'}), 200
+
+@app.route('/game/guess/<int:game_id>', methods=['POST'])
+@token_required
+def make_guess(current_user, game_id):
+    game = Game.query.get(game_id)
+    if not game:
+        return jsonify({'message': 'Game not found'}), 404
+    
+    if game.status != 'started':
+        return jsonify({'message': 'Game is not active'}), 400
+    
+    if game.game_type == 'multiplayer' and game.user_id != current_user.id:
+        return jsonify({'message': 'Unauthorized. This is not your game'}), 401
+    
+    data = request.json
+    guess = data.get('guess')
+    if not guess or len(guess) != 4 or not guess.isdigit():
+        return jsonify({'message': 'Invalid guess. It should be a 4-digit number'}), 400
+    
+    # Let's assume cows and bulls are calculated here, replace it with actual logic
+    cows, bulls = calculate_cows_bulls(guess)  # Implement this function
+    
+    new_guess = Guess(game_id=game.id, guess=guess, cows=cows, bulls=bulls)
+    db.session.add(new_guess)
+    db.session.commit()
+    
+    return jsonify({'message': 'Guess made successfully'}), 201
+
+# Function to calculate cows and bulls, replace it with actual logic
+def calculate_cows_bulls(guess):
+    secret_number = "1234"  # Replace with the actual secret number
+    cows = 0
+    bulls = 0
+    for i in range(len(secret_number)):
+        if guess[i] == secret_number[i]:
+            bulls += 1
+        elif guess[i] in secret_number:
+            cows += 1
+    return cows, bulls
 
 
 
