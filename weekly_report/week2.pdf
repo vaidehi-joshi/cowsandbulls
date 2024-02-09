@@ -1,0 +1,38 @@
+Project Title
+Cows and bulls
+Links to an external site.Description
+Cows and Bulls is a pen-and-paper code-breaking game usually played between 2 players. In this, a player tries to guess a secret code number chosen by the second player.
+Links to an external site.Github URL
+https://github.com/vaidehi-joshi/cowsandbulls
+
+Links to an external site.Milestones with deadlines
+Week 1: Setup repo and flask application, start auth strategy
+Week 2: Complete auth (login/management/signup)
+Week 3: Build the UI
+Week 4: Build the backend and integration
+Week 5: Testing and UI enhancements
+Links to an external site.Algorithms/AI schemes
+The core engine of the "Cows and Bulls" game involves algorithms to generate a random number, compare user guesses, and calculate the number of Cows and Bulls based on the rules of the game.
+
+Links to an external site.Random Number Generation:
+Utilize a secure random number generator to create a secret code for the player to guess.
+
+Links to an external site.User Guess Processing:
+Compare the user's guess with the generated code to determine the number of correct digits in the correct positions (Bulls) and the number of correct digits in the wrong positions (Cows).
+
+Links to an external site.Marketspace / Selling point
+Links to an external site.Market Space:
+The application targets the casual gaming market, offering an entertaining and challenging experience for users who enjoy logic and deduction games. It can be positioned as an engaging pastime for people of all ages.
+
+Links to an external site.Selling Points:
+Interactive Gameplay: Users can enjoy an interactive and intellectually stimulating game that requires logical thinking and deduction.
+
+User-Friendly Interface: The Flask-based frontend provides a user-friendly interface, making the game accessible to a wide audience.
+
+Educational Value: The game enhances logical reasoning and pattern recognition skills, making it suitable for educational purposes.
+
+Community Engagement: Incorporate features for multiple users to play together, and have fun.
+ 
+
+Github Account
+https://github.com/vaidehi-joshi
